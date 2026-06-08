@@ -165,6 +165,7 @@ export const useMainStore = defineStore('main', () => {
     updateProduct,
     deleteProduct,
     batchUpdateProducts,
+    batchUpdateProductsMap,
     batchImportProducts,
     addActivity,
     updateActivity,

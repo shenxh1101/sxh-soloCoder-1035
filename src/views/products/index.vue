@@ -191,12 +191,12 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="状态">
-            <el-select v-model="currentProduct.status" style="width: 100%">
-              <el-option label="在售" value="on_sale" />
-              <el-option label="下架" value="off_sale" />
-              <el-option label="待审核" value="pending" />
-            </el-select>
-          </el-form-item>
+              <el-select v-model="currentProduct.status" style="width: 100%">
+                <el-option label="在售" value="on_sale" />
+                <el-option label="下架" value="off_sale" />
+                <el-option label="待审核" value="pending" />
+              </el-select>
+            </el-form-item>
           </el-col>
         </el-row>
         <el-form-item label="所属店铺">
@@ -281,7 +281,7 @@ import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { useMainStore } from '@/stores/main'
-import { generateMockData from '@/utils/mock'
+import { generateMockData } from '@/utils/mock'
 import { parseImportFile, transformToProducts, exportToExcel } from '@/utils/import'
 import type { Product } from '@/types'
 

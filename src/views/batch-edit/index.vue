@@ -536,7 +536,9 @@ const executeBatch = () => {
   const failedCount = 0
 
   if (updatesMap.size > 0) {
-    store.batchUpdateProductsMap(updatesMap)
+    updatesMap.forEach((updates, id) => {
+      store.updateProduct(id, updates)
+    })
   }
 
   result.success = successCount

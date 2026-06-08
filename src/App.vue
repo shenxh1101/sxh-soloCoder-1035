@@ -90,8 +90,12 @@ const updateTime = () => {
 }
 
 onMounted(() => {
-  store.refreshAll()
-  generateMockData()
+  try {
+    store.refreshAll()
+    generateMockData()
+  } catch (e) {
+    console.error('初始化数据失败:', e)
+  }
   updateTime()
   timer = window.setInterval(updateTime, 1000)
 })
