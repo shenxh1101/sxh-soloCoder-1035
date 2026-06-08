@@ -106,6 +106,19 @@ export const productStorage = {
     saveData(data)
     return count
   },
+  batchUpdateMap(updatesMap: Map<string, Partial<Product>>): number {
+    const data = getData()
+    let count = 0
+    const now = new Date().toISOString()
+    data.products.forEach(p => {
+      if (updatesMap.has(p.id)) {
+        Object.assign(p, updatesMap.get(p.id)!, { updatedAt: now })
+        count++
+      }
+    })
+    saveData(data)
+    return count
+  },
   batchImport(products: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>[]): Product[] {
     const data = getData()
     const now = new Date().toISOString()

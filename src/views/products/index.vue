@@ -277,7 +277,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { useMainStore } from '@/stores/main'
@@ -492,8 +492,12 @@ const confirmImport = async () => {
 }
 
 const generateMock = () => {
-  generateMockData()
-  ElMessage.success('演示数据已生成')
+  const result = generateMockData(true)
+  if (result) {
+    ElMessage.success('演示数据已生成，包含 30 个商品、15 个活动、20 个素材、30 个任务')
+  } else {
+    ElMessage.info('未生成新数据')
+  }
 }
 
 const handleExport = () => {
@@ -514,11 +518,7 @@ const handleExport = () => {
   ElMessage.success('导出成功')
 }
 
-onMounted(() => {
-  if (store.products.length === 0) {
-    generateMockData()
-  }
-})
+
 </script>
 
 <style lang="scss" scoped>

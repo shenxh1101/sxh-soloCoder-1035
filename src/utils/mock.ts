@@ -2,14 +2,22 @@ import { useMainStore } from '@/stores/main'
 import { Product, Activity, Material, Task } from '@/types'
 import dayjs from 'dayjs'
 
-export function generateMockData() {
+export function generateMockData(force = false) {
   const store = useMainStore()
 
-  if (store.products.length > 0) return
+  if (!force && store.products.length > 0) {
+    return false
+  }
+
+  if (force) {
+    localStorage.removeItem('ecommerce_ops_data')
+    store.refreshAll()
+  }
 
   const shops = ['天猫旗舰店', '京东自营店', '拼多多旗舰店', '抖音旗舰店']
   const categories = ['手机数码', '家用电器', '服装鞋包', '美妆护肤', '食品饮料', '家居用品']
   const statuses: Product['status'][] = ['on_sale', 'off_sale', 'pending']
+  const persons = ['张三', '李四', '王五', '赵六', '钱七']
 
   const productTitles = [
     '2024新款智能手机 12+256GB 全网通5G',
@@ -63,7 +71,6 @@ export function generateMockData() {
   const activityTypes = ['618大促', '双11狂欢', '年货节', '品牌日', '会员日', '新品首发']
   const platforms = ['天猫', '京东', '拼多多', '抖音', '全平台']
   const activityStatuses: Activity['status'][] = ['draft', 'pending', 'approved', 'ongoing', 'ended']
-  const persons = ['张三', '李四', '王五', '赵六', '钱七']
 
   for (let i = 0; i < 15; i++) {
     const startDate = dayjs().add(i - 5, 'day')
@@ -154,4 +161,20 @@ export function generateMockData() {
       dailyDate: item.date
     })
   })
+
+  if (force) {
+    store.addTask({
+      title: '生成演示数据',
+      type: '商品导入',
+      priority: 'high',
+      status: 'completed',
+      progress: 100,
+      operator: '当前用户',
+      needReview: false,
+      reviewed: false,
+      remark: '已生成 30 个商品、15 个活动、20 个素材、30 个任务'
+    })
+  }
+
+  return true
 }

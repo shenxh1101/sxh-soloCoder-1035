@@ -63,18 +63,40 @@ export const useMainStore = defineStore('main', () => {
   }
 
   function updateProduct(id: string, updates: Partial<Product>) {
-    productStorage.update(id, updates)
-    refreshAll()
+    const index = products.value.findIndex(p => p.id === id)
+    if (index !== -1) {
+      products.value[index] = {
+        ...products.value[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      }
+      productStorage.update(id, updates)
+    }
   }
 
   function deleteProduct(id: string) {
+    products.value = products.value.filter(p => p.id !== id)
     productStorage.delete(id)
-    refreshAll()
   }
 
   function batchUpdateProducts(ids: string[], updates: Partial<Product>) {
+    const now = new Date().toISOString()
+    products.value.forEach(p => {
+      if (ids.includes(p.id)) {
+        Object.assign(p, updates, { updatedAt: now })
+      }
+    })
     productStorage.batchUpdate(ids, updates)
-    refreshAll()
+  }
+
+  function batchUpdateProductsMap(updatesMap: Map<string, Partial<Product>>) {
+    const now = new Date().toISOString()
+    products.value.forEach(p => {
+      if (updatesMap.has(p.id)) {
+        Object.assign(p, updatesMap.get(p.id)!, { updatedAt: now })
+      }
+    })
+    productStorage.batchUpdateMap(updatesMap)
   }
 
   function batchImportProducts(productsData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>[]) {

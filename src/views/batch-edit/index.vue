@@ -283,7 +283,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onUnmounted } from 'vue'
 import { ElMessage, ElTable } from 'element-plus'
 import { useMainStore } from '@/stores/main'
 import type { Product } from '@/types'
@@ -457,9 +457,6 @@ const statusModeText = (mode: string) => {
 }
 
 const executeBatch = () => {
-  let successCount = 0
-  const failedCount = 0
-
   const visibleProductIds = new Set(filteredProducts.value.map(p => p.id))
   const validSelectedIds = selectedIds.value.filter(id => visibleProductIds.has(id))
 
@@ -469,6 +466,7 @@ const executeBatch = () => {
   }
 
   const selectedProducts = store.products.filter(p => validSelectedIds.includes(p.id))
+  const updatesMap = new Map<string, Partial<Product>>()
 
   selectedProducts.forEach(product => {
     const updates: Partial<Product> = {}
@@ -530,28 +528,37 @@ const executeBatch = () => {
     }
 
     if (Object.keys(updates).length > 0) {
-      store.updateProduct(product.id, updates)
-      successCount++
+      updatesMap.set(product.id, updates)
     }
   })
+
+  const successCount = updatesMap.size
+  const failedCount = 0
+
+  if (updatesMap.size > 0) {
+    store.batchUpdateProductsMap(updatesMap)
+  }
 
   result.success = successCount
   result.failed = failedCount
   resultDialogVisible.value = true
 
-  store.addTask({
-    title: `批量修改 - ${selectedIds.length}件商品`,
-    type: '批量修改',
-    priority: 'high',
-    status: 'completed',
-    progress: 100,
-    operator: '当前用户',
-    needReview: true,
-    reviewed: false,
-    remark: `批量修改 ${successCount} 件商品，包含${buildChangeDescription()}`
-  })
-
-  ElMessage.success(`批量修改完成，成功 ${successCount} 件`)
+  if (successCount > 0) {
+    store.addTask({
+      title: `批量修改 - ${successCount}件商品`,
+      type: '批量修改',
+      priority: 'high',
+      status: 'completed',
+      progress: 100,
+      operator: '当前用户',
+      needReview: true,
+      reviewed: false,
+      remark: `批量修改 ${successCount} 件商品，包含${buildChangeDescription()}`
+    })
+    ElMessage.success(`批量修改完成，成功 ${successCount} 件`)
+  } else {
+    ElMessage.info('没有需要修改的商品')
+  }
 }
 
 const buildChangeDescription = () => {
@@ -566,9 +573,9 @@ const buildChangeDescription = () => {
 }
 
 const resetForm = () => {
+  clearSelection()
   resultDialogVisible.value = false
   currentStep.value = 0
-  selectedIds.value = []
   Object.assign(batchForm, {
     titleMode: 'none',
     titleValue: '',
@@ -583,6 +590,10 @@ const resetForm = () => {
     abnormalReason: ''
   })
 }
+
+onUnmounted(() => {
+  clearSelection()
+})
 </script>
 
 <style lang="scss" scoped>

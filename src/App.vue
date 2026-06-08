@@ -66,8 +66,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useMainStore } from '@/stores/main'
+import { generateMockData } from '@/utils/mock'
 
 const route = useRoute()
+const store = useMainStore()
 const activeMenu = computed(() => route.path)
 const currentPageTitle = computed(() => route.meta.title as string || '首页')
 
@@ -87,6 +90,8 @@ const updateTime = () => {
 }
 
 onMounted(() => {
+  store.refreshAll()
+  generateMockData()
   updateTime()
   timer = window.setInterval(updateTime, 1000)
 })
