@@ -368,6 +368,16 @@ const handleEdit = (row: Product) => {
 
 const saveEdit = () => {
   if (!currentProduct.value) return
+  const oldProduct = store.products.find(p => p.id === currentProduct.value!.id)
+  const changes: string[] = []
+  if (oldProduct && currentProduct.value) {
+    if (oldProduct.title !== currentProduct.value.title) changes.push('标题')
+    if (oldProduct.sellingPoint !== currentProduct.value.sellingPoint) changes.push('卖点')
+    if (oldProduct.price !== currentProduct.value.price) changes.push('价格')
+    if (oldProduct.stock !== currentProduct.value.stock) changes.push('库存')
+    if (oldProduct.status !== currentProduct.value.status) changes.push('状态')
+    if (oldProduct.shop !== currentProduct.value.shop) changes.push('店铺')
+  }
   store.updateProduct(currentProduct.value.id, {
     title: currentProduct.value.title,
     sellingPoint: currentProduct.value.sellingPoint,
@@ -380,6 +390,19 @@ const saveEdit = () => {
   })
   editDialogVisible.value = false
   ElMessage.success('保存成功')
+  if (changes.length > 0) {
+    store.addTask({
+      title: `商品编辑 - ${currentProduct.value.sku}`,
+      type: '批量修改',
+      priority: 'medium',
+      status: 'completed',
+      progress: 100,
+      operator: '当前用户',
+      needReview: changes.includes('价格') || changes.includes('库存'),
+      reviewed: false,
+      remark: `修改了${changes.join('、')}`
+    })
+  }
 }
 
 const toggleAbnormal = (row: Product) => {
@@ -391,6 +414,17 @@ const toggleAbnormal = (row: Product) => {
     }).then(() => {
       store.updateProduct(row.id, { isAbnormal: false, abnormalReason: '' })
       ElMessage.success('已解除异常标记')
+      store.addTask({
+        title: `解除异常 - ${row.sku}`,
+        type: '商品导入',
+        priority: 'medium',
+        status: 'completed',
+        progress: 100,
+        operator: '当前用户',
+        needReview: false,
+        reviewed: false,
+        remark: '商品异常标记已解除'
+      })
     })
   } else {
     abnormalTarget.value = row
@@ -410,6 +444,17 @@ const confirmAbnormal = () => {
   })
   abnormalDialogVisible.value = false
   ElMessage.success('已标记为异常商品')
+  store.addTask({
+    title: `标记异常 - ${abnormalTarget.value.sku}`,
+    type: '商品导入',
+    priority: 'high',
+    status: 'completed',
+    progress: 100,
+    operator: '当前用户',
+    needReview: true,
+    reviewed: false,
+    remark: `标记异常，原因：${reason}`
+  })
 }
 
 const handleImport = () => {

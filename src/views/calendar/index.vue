@@ -695,7 +695,7 @@ async function saveActivity() {
   height: 36px;
 }
 
-:deep(.el-calendar-day:hover {
-  padding: 0;
+:deep(.el-calendar-day:hover) {
+  background: transparent;
 }
 </style>

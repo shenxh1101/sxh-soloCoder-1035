@@ -64,6 +64,7 @@ export interface Task {
   needReview: boolean
   reviewed: boolean
   remark: string
+  dailyDate?: string
   createdAt: string
   updatedAt: string
   completedAt?: string

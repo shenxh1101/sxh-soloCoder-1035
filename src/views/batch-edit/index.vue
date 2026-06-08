@@ -75,6 +75,7 @@
 
       <div class="table-container" style="max-height: 400px">
         <el-table
+          ref="tableRef"
           :data="filteredProducts"
           stripe
           border
@@ -283,7 +284,7 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElTable } from 'element-plus'
 import { useMainStore } from '@/stores/main'
 import type { Product } from '@/types'
 
@@ -293,6 +294,7 @@ const currentStep = ref(0)
 const activeTab = ref('title')
 const selectedIds = ref<string[]>([])
 const resultDialogVisible = ref(false)
+const tableRef = ref<InstanceType<typeof ElTable>>()
 
 const filters = reactive({
   shop: '',
@@ -351,18 +353,35 @@ const handleSelectionChange = (val: Product[]) => {
 }
 
 const selectAll = () => {
-  selectedIds.value = filteredProducts.value.map(p => p.id)
+  if (tableRef.value) {
+    tableRef.value.toggleAllSelection()
+  } else {
+    selectedIds.value = filteredProducts.value.map(p => p.id)
+  }
 }
 
 const invertSelection = () => {
-  const currentSelected = new Set(selectedIds.value)
-  selectedIds.value = filteredProducts.value
-    .filter(p => !currentSelected.has(p.id))
-    .map(p => p.id)
+  if (tableRef.value) {
+    filteredProducts.value.forEach(p => {
+      tableRef.value!.toggleRowSelection(p, !selectedIds.value.includes(p.id))
+    })
+  } else {
+    const currentSelected = new Set(selectedIds.value)
+    selectedIds.value = filteredProducts.value
+      .filter(p => !currentSelected.has(p.id))
+      .map(p => p.id)
+  }
+}
+
+const clearSelection = () => {
+  if (tableRef.value) {
+    tableRef.value.clearSelection()
+  }
+  selectedIds.value = []
 }
 
 const handleSearch = () => {
-  selectedIds.value = []
+  clearSelection()
 }
 
 const handleReset = () => {
@@ -373,7 +392,7 @@ const handleReset = () => {
     minPrice: null,
     maxPrice: null
   })
-  selectedIds.value = []
+  clearSelection()
 }
 
 const nextStep = () => {
@@ -384,6 +403,9 @@ const nextStep = () => {
 
 const prevStep = () => {
   if (currentStep.value > 0) {
+    if (currentStep.value === 2) {
+      clearSelection()
+    }
     currentStep.value--
   }
 }
@@ -438,7 +460,15 @@ const executeBatch = () => {
   let successCount = 0
   const failedCount = 0
 
-  const selectedProducts = store.products.filter(p => selectedIds.value.includes(p.id))
+  const visibleProductIds = new Set(filteredProducts.value.map(p => p.id))
+  const validSelectedIds = selectedIds.value.filter(id => visibleProductIds.has(id))
+
+  if (validSelectedIds.length !== selectedIds.value.length) {
+    ElMessage.warning(`已自动排除 ${selectedIds.value.length - validSelectedIds.length} 个不在当前筛选范围内的商品`)
+    selectedIds.value = validSelectedIds
+  }
+
+  const selectedProducts = store.products.filter(p => validSelectedIds.includes(p.id))
 
   selectedProducts.forEach(product => {
     const updates: Partial<Product> = {}

@@ -125,8 +125,33 @@ export function generateMockData() {
       needReview: Math.random() > 0.6,
       reviewed: false,
       remark: `任务${i + 1}的详细说明和注意事项`,
+      dailyDate: undefined,
       completedAt: i % 4 === 2 ? dayjs().subtract(i, 'hour').toISOString() : undefined
     }
     store.addTask(task)
   }
+
+  const today = dayjs().format('YYYY-MM-DD')
+  const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD')
+  const dailyItems = [
+    { type: '商品导入', title: '检查今日新品导入', priority: 'high' as const, date: today },
+    { type: '价格调整', title: '检查商品价格是否异常', priority: 'medium' as const, date: today },
+    { type: '库存更新', title: '更新热销商品库存', priority: 'high' as const, date: today },
+    { type: '素材审核', title: '审核待处理素材', priority: 'medium' as const, date: tomorrow },
+    { type: '活动报名', title: '检查活动报名进度', priority: 'medium' as const, date: tomorrow }
+  ]
+  dailyItems.forEach(item => {
+    store.addTask({
+      title: item.title,
+      type: item.type,
+      priority: item.priority,
+      status: 'pending',
+      progress: 0,
+      operator: '当前用户',
+      needReview: item.priority === 'high',
+      reviewed: false,
+      remark: '每日运营清单自动生成',
+      dailyDate: item.date
+    })
+  })
 }

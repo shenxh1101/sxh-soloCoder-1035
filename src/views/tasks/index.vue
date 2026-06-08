@@ -5,7 +5,7 @@
       <div class="page-actions">
         <el-button type="primary" @click="generateDailyList">
           <el-icon><DocumentAdd /></el-icon>
-          生成今日清单
+          生成所选日期清单
         </el-button>
         <el-button @click="handleAdd">
           <el-icon><Plus /></el-icon>
@@ -443,10 +443,7 @@ const needReviewTasks = computed(() => {
 
 const dailyTasks = computed(() => {
   const dateStr = selectedDate.value
-  return store.tasks.filter(t => {
-    const taskDate = dayjs(t.createdAt).format('YYYY-MM-DD')
-    return taskDate === dateStr
-  })
+  return store.tasks.filter(t => t.dailyDate === dateStr)
 })
 
 const dailySummary = computed(() => {
@@ -604,13 +601,12 @@ function retryTask(row: Task) {
 }
 
 function generateDailyList() {
-  const todayTasks = store.tasks.filter(t => {
-    const taskDate = dayjs(t.createdAt).format('YYYY-MM-DD')
-    return taskDate === selectedDate.value
-  })
+  const targetDate = selectedDate.value
 
-  if (todayTasks.length > 0) {
-    ElMessage.info(`今日已有 ${todayTasks.length} 个任务`)
+  const existingDailyTasks = store.tasks.filter(t => t.dailyDate === targetDate && t.remark === '每日运营清单自动生成')
+
+  if (existingDailyTasks.length > 0) {
+    ElMessage.info(`${dayjs(targetDate).format('YYYY年MM月DD日')} 已生成过运营清单，共 ${existingDailyTasks.length} 个任务`)
     return
   }
 
@@ -633,11 +629,12 @@ function generateDailyList() {
       operator: '当前用户',
       needReview: item.priority === 'high',
       reviewed: false,
-      remark: '每日运营清单自动生成'
+      remark: '每日运营清单自动生成',
+      dailyDate: targetDate
     })
   })
 
-  ElMessage.success('今日运营清单已生成，共 6 个任务')
+  ElMessage.success(`${dayjs(targetDate).format('YYYY年MM月DD日')} 运营清单已生成，共 6 个任务`)
 }
 </script>
 

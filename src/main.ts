@@ -7,6 +7,8 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 import App from './App.vue'
 import router from './router'
+import { generateMockData } from './utils/mock'
+import { useMainStore } from './stores/main'
 import './styles/global.scss'
 
 const app = createApp(App)
@@ -15,8 +17,13 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
 
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
 app.use(router)
 app.use(ElementPlus, { locale: zhCn })
+
+const store = useMainStore()
+store.refreshAll()
+generateMockData()
 
 app.mount('#app')
